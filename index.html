@@ -1,0 +1,401 @@
+<!doctype html>  
+<html lang="en" ng-App="utApp">  
+    <head>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.1/angular-route.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.3/ui-bootstrap-tpls.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<style>
+#process {padding-top:50px;height:700px;max-height:900px;color: #fff;white-space: nowrap; background-color: #000;}
+#Handshake {padding-top:50px;height:900px;max-height:900px;color: #fff;white-space: nowrap; background-color: #009688;}
+#Object {padding-top:50px;height:900px;max-height:900px;color: #fff;white-space: nowrap; background-color: #6762a6;}
+.btn-bs-file input[type="file"]{
+    position: absolute;
+    top: -9999999;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    width:50;
+    height:50;
+    outline: none;
+    cursor: inherit;
+}
+.error{
+  color: tomato; 
+  font-size: 16px; 
+  font-weight:bold;
+  padding-top: 4px
+}
+</style>
+    </head>
+    <body ng-controller="utController" data-spy="scroll" data-target=".navbar"  data-offset="50">
+<nav class="navbar navbar-inverse  navbar-fixed-top ">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" >
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+      <a class="navbar-brand" href="#process">UT Tool</a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#process">Home</a></li>
+        <li><a href="#Handshake">Handshake <span class="glyphicon  btn-success " ng-show="handshakesuccess">&#xe013;</span></a> </li>
+        <li><a href="#Object">Object<span class="glyphicon  btn-success " ng-show="objectsuccess">&#xe013;</span></a></li>
+		<li><a href="#JIRA">JIRA(Under Construction)</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-user"></span> {{username}}</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div id="process">
+        <h1 class="container">UT TOOL</h1>
+		<div class="container">
+		FLow of execution is done in three in 3 steps.
+		<br/>
+		<p>1. Handshake : We will be establishing connection to salesforce org using connected App</p>
+		<p>2. Object Details : Based on the object Details provided we will be executing unit testing check<p>
+		<p>3. JIRA Status: If there are no error during execution we will update JIRA Status (Under Construction)<p>
+<br/>
+		<p> Real Time overview of execution status is provided through checkbox for viewing logs. After after Successful step, a tick mark is appended at navigation bar.</p>
+		<p>The object Details capturing can further be enhanced for multiple objects at one-time.</p>
+		</div>
+		<div class="form-check container">
+    <input type="checkbox" class="filled-in form-check-input" id="checkbox104"  ng-model="showprocess" >
+    <label class="form-check-label" for="checkbox104">Continue with Process</label>
+</div>
+
+        <div class="col-xs-17 container" ng-show="onxtstep">
+        <div class="text-right">
+            <a href="#Handshake"><button type="button" class="btn btn-danger"   >Next Step</button></a>
+        </div>
+		<br/>
+    </div>
+		</div>
+
+<div id="Handshake" class="container-fluid">
+<h1 class="container"> Step 1 : Handshake </h1>
+<form class="form-horizontal" class="form-inline" role="form" name="handform" ng-show="showprocess">
+<div class="form-group">
+		<label for="Upload Type" class="col-sm-3 control-label">Upload Type</label>
+				<div class="col-sm-4">
+				 <select class="form-control" ng-model="upldtype" ng-options="x for x in ['Upload','Formfilling']" required>
+				 <option value="">Select Type</option> 
+					</select>
+				</div>
+				<div class="col-sm-3"></div>
+		</div>
+
+		<div ng-show="upldtype=='Formfilling'">
+		<div class="form-group">
+            <label for="username" class="col-sm-3 control-label">Org Username</label>
+            <div class="col-sm-4">
+                <input type="text" id="firstName" class="form-control" ng-model="details.username" name="envusername"required="true"/>
+				<!--<div ng-show="handform.email.$error.email" class="error">Invalid Username!</div>-->
+                <div ng-show="handform.envusername.$error.required &amp;&amp; handform.envusername.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+
+        </div>
+        <div class="form-group">
+            <label for="Password" class="col-sm-3 control-label">Password</label>
+            <div class="col-sm-4">
+                <input type="password" id="Password" class="form-control" ng-model="details.password" name="envpassword"required="true" />
+				<div ng-show="handform.envpassword.$error.required &amp;&amp; handform.envpassword.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="form-group">
+            <label for="clientid" class="col-sm-3 control-label">Client ID</label>
+            <div class="col-sm-4">
+                <input type="text" id="clientid" class="form-control" ng-model="details.clientid" name="envclientid"required="true"/>
+				<div ng-show="handform.envclientid.$error.required &amp;&amp; handform.envclientid.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="form-group">
+            <label for="secret" class="col-sm-3 control-label">Client secret</label>
+            <div class="col-sm-4">
+                <input type="text" id="secret" class="form-control" ng-model="details.clientsecret" name="envclientsecret" required="true" />
+				<div ng-show="handform.envclientsecret.$error.required &amp;&amp; handform.envclientsecret.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="form-group">
+            <label for="Upload Type" class="col-sm-3 control-label">Environment</label>
+				<div class="col-sm-4">
+				 <select class="form-control" ng-model="details.env" name="envtype" ng-options="x for x in ['Production','Sandbox']" required>
+				 <option value="">Select Type</option> 
+					</select>
+					<div ng-show="handform.envtype.$error.required &amp;&amp; handform.envtype.$touched" class="error">Required!</div>
+				</div>
+				<div class="col-sm-3"></div>
+        </div>
+		</div>
+	
+		<div ng-show="upldtype=='Upload'">
+		<div class="form-group">
+		<label for="Type" class="col-sm-3 control-label">Details</label>
+				<div class="col-sm-7 row-sm-5">
+				 <pre>{{ fileContent }}</pre>
+				</div>
+		</div>
+		<div class="form-group">
+		<label for="Type" class="col-sm-3 control-label"></label>
+				<div class="col-sm-7 row-sm-5">
+				 <div class="btn-bs-file btn btn-lg btn-danger">
+                <span>Choose file</span>
+                <input type="file" id="myFileInput" class="btn" ng-model="inptfile" name="envinputfile" onchange="angular.element(this).scope().submit()" />
+            </div>
+				</div>
+		</div>
+
+      </div>
+	  <div class="row">
+    <div class="col-xs-11">
+        <div class="text-right">
+            <button type="button" class="btn btn-danger" ng-click="captureddetails()" ng-disabled="(details.username ==null) ||(details.password==null) ||(details.clientid==null) || (details.clientsecret==null) ||(details.env==null)">Connect</button>
+        </div>
+    </div>
+</div>
+</form>
+<div ng-show="!showprocess"><h2 class="container">Read Info and select Checkbox</h2></div>
+<div ng-show="showhandshakeprogress">
+			<div class="container">
+		<h2>Salesforce Org Connection Status</h2>
+		<div class="progress">
+		<div class="progress-bar" role="progressbar" aria-valuenow="{{value}}" aria-valuemin="0" aria-valuemax="100" style="width:{{value}}%">
+		  {{value}}% Complete
+		</div>
+
+		</div>
+		<div class="form-check">
+    <input type="checkbox" class="filled-in form-check-input" id="checkbox101"  ng-model="showsfdcconlog">
+    <label class="form-check-label" for="checkbox101">Show Logs</label>
+</div>
+<div  ng-show="showsfdcconlog">
+
+				 <pre>{{ sfdccon }}</pre>
+		</div>
+		<div class="col-xs-17" ng-show="hnxtstep">
+        <div class="text-right">
+            <a href="#Object"><button type="button" class="btn btn-danger" ng-click="objectnextstep()" ng-disabled="(value!=100)" >Next Step</button></a>
+        </div>
+		<br/>
+    </div>
+		</div>
+		
+		</div>
+</div>  
+
+<div id="Object" class="container-fluid">
+<h1 class="container"> Step 2 : Object Details </h1>
+<div ng-show="(value==100)">
+<form class="form-horizontal" class="form-inline" role="form" name="objectform">
+
+<div class="form-group">
+		<label for="Type" class="col-sm-3 control-label">Type</label>
+				<div class="col-sm-4">
+				 <select class="form-control" ng-model="obj.selectedName" ng-options="x for x in names" required>
+				 <option value="">Select Type</option> 
+					</select>
+				</div>
+				<div class="col-sm-3"></div>
+		</div>
+		<div class="form-group">
+		<label for="Type" class="col-sm-3 control-label">Object Name</label>
+				<div class="col-sm-4">
+				 <input type="name" id="objname" class="form-control" ng-model="obj.objname"  required="true"/>
+				</div>
+				<div class="col-sm-3"></div>
+		</div>
+		<div class="col-xs-11">
+        <div class="text-right">
+            <button type="button" class="btn btn-danger" ng-click="capturedobj()"  >Execute</button>
+        </div>
+    </div>
+		<br/><br/>
+</form>
+<div class="container">
+<div class="form-check">
+    <input type="checkbox" class="filled-in form-check-input" id="checkbox102"  ng-model="showobjectconlog">
+    <label class="form-check-label" for="checkbox102">Show Logs</label>
+</div>
+<div  ng-show="showobjectconlog">
+
+				 <pre style="max-height:400px">{{ objjobscon }}</pre>
+		</div>
+	<div class="form-check">
+    <input type="checkbox" class="filled-in form-check-input" id="checkbox103"  ng-model="showobjectconlogerr">
+    <label class="form-check-label" for="checkbox103">Error Logs</label>
+</div>
+<div  ng-show="showobjectconlogerr">
+
+				 <pre style="max-height:100px">{{ objjobsconerr }}</pre>
+		</div>
+<div class="col-xs-17" ng-show="onxtstep">
+        <div class="text-right">
+            <a href="#JIRA"><button type="button" class="btn btn-danger" ng-click="jiranextstep()"  >Next Step</button></a>
+        </div>
+		<br/>
+    </div>
+</div>
+</div>
+<div ng-show="(value!=100)">
+<h2 class="container"> Please Complete Step 1 First</h2>
+</div>
+</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+   
+		<script>  
+	'use strict';	
+		var app = angular.module('utApp', ['ui.bootstrap','ngRoute']);
+		app.factory('socket', ['$rootScope', function($rootScope) {
+  var socket = io.connect();
+
+  return {
+    on: function(eventName, callback){
+      socket.on(eventName, callback);
+    },
+    emit: function(eventName, data) {
+      socket.emit(eventName, data);
+    }
+  };
+}]);
+
+app.controller('utController', function($scope,$http, socket) {
+$scope.handshakesuccess=false;
+$scope.showsfdcconlog=true;
+$scope.showobjectconlog=true;
+$scope.sfdccon='';
+$scope.objjobscon='';
+$scope.objjobsconerr='';
+$scope.hnxtstep=false;
+$scope.onxtstep=true;
+$scope.objectsuccess=false;
+$scope.showobjectconlogerr=false;
+$scope.upldtype='Upload';
+$scope.showprocess=false;
+$scope.names=['DataRaptor','OmniScript'];
+  $scope.join = function() {
+    socket.emit('joined', $scope.chat_input);
+  };
+socket.on('connect', function(data) {
+    socket.emit('join', 'Hello World from client');
+ });
+  socket.on('broad', function(data) {
+  console.log(data);
+    $scope.value=data;
+	//$state.reload();
+	$scope.$apply();
+  });
+  socket.on('username', function(data) {
+  console.log(data);
+    $scope.username=data;
+	//$state.reload();
+	$scope.$apply();
+  });
+  socket.on('sfdccomslog', function(data) {
+  console.log('dsdsdsd',data);
+  if(data)
+    $scope.sfdccon+='\n'+data;
+	//$state.reload();
+	$scope.$apply();
+  });
+  socket.on('sfdccoms', function(data) {
+  console.log(data);
+    $scope.value=data;
+	if($scope.value===100){
+	$scope.handshakesuccess=true;
+	$scope.hnxtstep=true;
+	}
+	//$state.reload();
+	$scope.$apply();
+  });
+  socket.on('objjobs', function(data) {
+  console.log('dsdsdsd',data);
+  $scope.objjobscon+='\n'+data;
+  
+  if(data.match(/Done/g)){
+  console.log('scsa',$scope.objjobsconerr)
+	if($scope.objjobsconerr==''){
+		$scope.objectsuccess=true;
+	}
+	else{
+	$scope.showobjectconlogerr=true;
+	$scope.objectsuccess=false;
+		console.log('errors are present');
+	}
+  }
+  $scope.$apply();
+  });
+  socket.on('objjobserr', function(data) {
+  console.log('dsdsdsderr',data);
+  $scope.objjobsconerr+='\n'+data;
+  $scope.$apply();
+  });
+  
+  $scope.fileContent = '';
+        $scope.fileSize = 0;
+        $scope.fileName = '';
+        $scope.submit = function () {
+          var file = document.getElementById("myFileInput").files[0];
+          if (file) {
+		  console.log(file);
+            var aReader = new FileReader();
+            aReader.readAsText(file, "UTF-8");
+            aReader.onload = function (evt) {
+                document.getElementById("myFileInput").innerHTML = evt.target.result;
+                $scope.fileContent = aReader.result;
+                $scope.fileName = document.getElementById("myFileInput").files[0].name;
+        				$scope.fileSize = document.getElementById("myFileInput").files[0].size;
+				var temp=JSON.parse(evt.target.result);
+				console.log(temp.username);
+				$scope.details.username=temp.username;
+				$scope.details.password=temp.password;
+				$scope.details.clientid=temp.clientid;
+				$scope.details.clientsecret=temp.clientsecret;
+				$scope.details.env=temp.env;
+				$scope.upldtype='Formfilling';
+				$scope.$apply();
+            }
+            aReader.onerror = function (evt) {
+                document.getElementById("myFileInput").innerHTML = "error";
+                $scope.fileContent = "error";
+            }
+          }
+        }
+  
+  
+  $scope.captureddetails=function(){
+	$scope.showhandshakeprogress=true;
+	socket.emit('sfdcdetails', $scope.details);
+  }
+  $scope.capturedobj=function(){
+  $scope.objjobscon='';
+  $scope.objjobsconerr='';
+	socket.emit('sfdcobjdetails', $scope.obj);
+  }
+  $scope.jiranextstep=function(){
+
+	if($scope.objjobsconerr===''){
+		$scope.objectsuccess=true;
+	}
+	else{
+	$scope.showobjectconlogerr=true;
+	$scope.objectsuccess=false;
+		console.log('errors are present');
+	}
+  }
+  });
+  
+</script>
+    </body>
+</html>

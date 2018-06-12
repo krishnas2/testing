@@ -1,0 +1,259 @@
+<!doctype html>  
+<html lang="en" ng-App="particlesApp"> 
+<head>
+<style>
+/* ---- reset ---- */
+
+
+canvas {
+  display: block;
+  vertical-align: bottom;
+}
+/* ---- particles.js container ---- */
+
+#particleJs {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #6762a6;
+}
+
+.center_div{
+    margin: 0 auto;
+    width:80% ;
+	color:#fff;
+}
+.login-container{
+  max-width: 400px; 
+  margin: 60px auto 0;
+}
+
+.error{
+  color: tomato; 
+  font-size: 16px; 
+  font-weight:bold;
+  padding-top: 4px
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.1/angular-route.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.3/ui-bootstrap-tpls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+</head>
+<body>
+
+<div ng-controller="particlesCtrl">
+    <div particles-drv ng-show="showParticles"></div>
+	<div class="container center_div" >
+	<br><br><br>
+      <form name="myForm">
+        <div class="login-container">
+		
+          <div class="row">
+		  <div class="col-md-12">
+              <div class="form-group">
+                <h2> Enter Details</h2>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="email" ng-model="user.username" required class="form-control">
+                <div ng-show="myForm.email.$error.email" class="error">Invalid Username!</div>
+                <div ng-show="myForm.email.$error.required &amp;&amp; myForm.email.$touched" class="error">Required!</div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="pass" ng-model="user.password" required class="form-control">
+                <div ng-show="myForm.pass.$error.required &amp;&amp; myForm.pass.$touched" class="error">Required!</div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="form-group">
+                <button ng-click="authenticate()" ng-disabled="myForm.$invalid" class="btn btn-success pull-right">Login</button>
+                <div class="clearfix"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div ng-show="showError" class="alert alert-danger">Wrong credentials!</div>
+              <div ng-show="showSuccess" class="alert alert-success">Login Successful! Redirecting... Please wait</div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+<script>
+var app = angular.module('particlesApp', []);
+app.controller('particlesCtrl', ['$scope','$http', particlesCtrl]);
+app.directive('particlesDrv', ['$window', '$log', particlesDrv]);
+
+function particlesCtrl($scope,$http) {
+  $scope.showParticles = true;
+  var validUsers= [ 
+		{'username':'kkj', 'password':'admin'},
+		{'username':'rama', 'password':'admin'},
+	];
+	
+	$scope.showError = false; // set Error flag
+	$scope.showSuccess = false; // set Success Flag
+
+	//------- Authenticate function
+	$scope.authenticate = function (){
+		var flag= false;
+		
+		for(var i in validUsers){ // loop on users array
+			if($scope.user.username == validUsers[i].username && $scope.user.password == validUsers[i].password){
+				flag = true;
+				break;
+			}
+			else{
+				flag = false;
+			}				
+		}
+
+		//-------- set error or success flags
+		if(flag){
+			$scope.showError = false;
+			$scope.showSuccess = true;
+			$http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
+			$http.post('/',$scope.user).
+					then(function(response) {
+						console.log("posted successfully",response);
+						//consoel.log(response);
+						window.location=response.data;
+					}).catch(function(response) {
+						console.error("error in posting",response);
+					})
+		}
+		else{
+			$scope.showError = true;
+			$scope.showSuccess = false;
+		}
+
+
+	}
+}
+
+function particlesDrv($window, $log) {
+  return {
+    restrict: 'A',
+    template: '<div class="particleJs" id="particleJs"></div>',
+    link: function(scope, element, attrs, fn) {
+      $log.debug('test');
+      $window.particlesJS('particleJs', {
+        particles: {
+          number: {
+            value: 50,
+            density: {
+              enable: true,
+              value_area: 800
+            }
+          },
+          color: {
+            value: '#ffffff'
+          },
+          shape: {
+            type: "circle",
+            polygon: {
+              nb_sides: 5
+            }
+          },
+          opacity: {
+            value: 0.5,
+            random: false,
+            anim: {
+              enable: false,
+              speed: 1,
+              opacity_min: 0.1,
+              sync: false
+            }
+          },
+          size: {
+            value: 5,
+            random: true,
+            anim: {
+              enable: false,
+              speed: 40,
+              size_min: 0.1,
+              sync: false
+            }
+          },
+          line_linked: {
+            enable: true,
+            distance: 150,
+            color: '#ffffff',
+            opacity: 0.4,
+            width: 1
+          },
+          move: {
+            enable: true,
+            speed: 6,
+            direction: 'none',
+            random: false,
+            straight: false,
+            out_mode: 'out',
+            bounce: false,
+            attract: {
+              enable: false,
+              rotateX: 600,
+              rotateY: 1200
+            }
+          }
+        },
+        interactivity: {
+          detect_on: 'canvas',
+          events: {
+            onhover: {
+              enable: true,
+              mode: 'grab'
+            },
+            onclick: {
+              enable: true,
+              mode: 'push'
+            },
+            resize: true
+          },
+          modes: {
+            grab: {
+              distance: 140,
+              line_linked: {
+                opacity: 1
+              }
+            },
+            bubble: {
+              distance: 400,
+              size: 40,
+              duration: 2,
+              opacity: 8,
+              speed: 3
+            },
+            repulse: {
+              distance: 200,
+              duration: 0.4
+            },
+            push: {
+              particles_nb: 4
+            },
+            remove: {
+              particles_nb: 2
+            }
+          }
+        },
+        retina_detect: true
+      });
+    }
+  };
+}
+
+</script>
+</body>
+</html>
