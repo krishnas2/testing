@@ -71,7 +71,7 @@ var RestCallMapper=(query,msg,opt,client)=>{
 			 }
 			 else if (resp.done && resp.totalSize==0){
 				 switch(msg){
-           case "CheckOmniscriptsExists":client.emit('objjobserr',"There is no active version of this omniscript");client.emit('objjobs',"There is no active version of this omniscript");client.emit('objjobs','Checking Omniscript is Done');break;
+           case "CheckOmniscriptsExists":client.emit('objjobserr',"Omniscript Doesn't Exits, Give correct name");client.emit('objjobs',"There is no active version of this omniscript");client.emit('objjobs','Checking Omniscript is Done');break;
 				case "DR Exists": client.emit('objjobs',"DR query may be correct but there were no records for the query");client.emit('objjobserr',"DR query may be correct but there were no records for the query");client.emit('objjobs','Checking DR is Done');break;
 				case "ExtractDRperformop":client.emit('objjobs','DR query may be correct but to perform any operation no records for the query');break;
 				case "OmniscriptsExists":client.emit('objjobs',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobserr',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobs','Checking Omniscript is Done');break;
@@ -105,8 +105,8 @@ var OmniScriptperformop=(resp,client)=>{
 		//console.log(resp.records[i].Name,true);
 		sample[resp.records[i].Name]=true;
 		propset=JSON.parse(resp.records[i]["vlocity_cmt__PropertySet__c"]);
-		client.emit('objjobs','Checking Node'+resp.records[i].Name);
-		client.emit('objjobs','Type'+resp.records[i]["vlocity_cmt__Type__c"]);
+		client.emit('objjobs','Checking Node '+resp.records[i].Name);
+		client.emit('objjobs','Type '+resp.records[i]["vlocity_cmt__Type__c"]);
 		switch(resp.records[i]["vlocity_cmt__Type__c"]){
 			case "Remote Action":
 								
