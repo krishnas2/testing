@@ -69,7 +69,7 @@ var RestCallMapper=(query,msg,opt,client)=>{
 		});
 		result.on('end',function(){
 			var resp=JSON.parse(responseString1);
-			console.log('respo',resp.done,resp.totalSize);
+			console.log('respo',resp.done,resp.totalSize,resp);
 			
 			
 			 if(resp.done && resp.totalSize>0){
