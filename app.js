@@ -36,7 +36,7 @@ for (i in req.body){
 });
 
 var objectexists=(bundle,name,client)=>{
-	que='select+Id+from+vlocity_cmt__'+bundle+'__c+where+Name="'+name.replace(/\s/g,'+')+'"';
+	que='select+Id+from+vlocity_cmt__'+bundle+'__c+where+Name="'+name.replace(/\s/g,'+')+'';
 	client.emit('objjobs','Checking Whether'+bundle+' Object with name '+name+' exists');
 	RestCallMapper(que,'genericexists',name,client);
 	switch(bundle){
@@ -44,7 +44,7 @@ var objectexists=(bundle,name,client)=>{
 		case "VlocityCard":
 		case "VlocityUILayout":
 						que2='select+Id+from+vlocity_cmt__'+bundle+'__c+where+Name="'+name.replace(/\s/g,'+')+'"and+vlocity_cmt__Active__c=true';
-						RestCallMapper(que,'genericactive',name,client);break;
+						RestCallMapper(que2,'genericactive',name,client);break;
 	}
 }
 
