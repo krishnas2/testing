@@ -74,7 +74,7 @@ var RestCallMapper=(query,msg,opt,client)=>{
            case "CheckOmniscriptsExists":client.emit('objjobserr',"Omniscript Doesn't Exits, Give correct name");client.emit('objjobs',"There is no active version of this omniscript");client.emit('objjobs','Checking Omniscript is Done');break;
 				case "DR Exists": client.emit('objjobs',"DR query may be correct but there were no records for the query");client.emit('objjobserr',"DR query may be correct but there were no records for the query");client.emit('objjobs','Checking DR is Done');break;
 				case "ExtractDRperformop":client.emit('objjobs','DR query may be correct but to perform any operation no records for the query');break;
-				case "OmniscriptsExists":client.emit('objjobs',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobserr',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobs','Checking Omniscript is Done');break;
+				case "OmniscriptsExists":client.emit('objjobs',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobserr',"Omniscript query may be correct but there were no records for the query,kindly activate the Omniscript and try again"+JSON.stringify(resp,null,2));client.emit('objjobs','Checking Omniscript is Done');break;
 				case "DRqueries":client.emit('objjobs','DR query may be correct but there were no records for the query,this could be due to field level security as well'+JSON.stringify(resp,null,2));break;
 				case "OmniScriptperformop":client.emit('objjobs','Omniscript query may be correct but there were no records for the query to perform any opration');break;
 			}
