@@ -39,7 +39,7 @@ var objectexists=(bundle,name,client)=>{
 	que='select+Id+from+vlocity_cmt__'+bundle+'__c+where+Name="'+name.replace(/\s/g,'+')+'"';
 	client.emit('objjobs','Checking Whether'+bundle+' Object with name '+name+' exists');
 	RestCallMapper(que,'genericexists',name,client);
-	switch(){
+	switch(bundle){
 		case "VlocityUITemplate":
 		case "VlocityCard":
 		case "VlocityUILayout":
