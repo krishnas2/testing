@@ -35,6 +35,20 @@ for (i in req.body){
 	res.end();
 });
 
+var objectexists=(bundle,name,client){
+	que='select+Id+from+vlocity_cmt__'+bundle+'__c+where+Name="'+name.replace(/\s/g,'+')+'"';
+	client.emit('objjobs','Checking Whether'+bundle+' Object with name '+name+' exists');
+	RestCallMapper(que,'genericexists',name,client);
+	switch(){
+		case "VlocityUITemplate":
+		case "VlocityCard":
+		case "VlocityUILayout":
+						que2='select+Id+from+vlocity_cmt__'+bundle+'__c+where+Name="'+name.replace(/\s/g,'+')+'"and+vlocity_cmt__Active__c=true';
+						RestCallMapper(que,'genericactive',name,client);break;
+	}
+	'
+}
+
 var RestCallMapper=(query,msg,opt,client)=>{
 	var headers={
 		'Content-Type':'application/json',
@@ -61,6 +75,8 @@ var RestCallMapper=(query,msg,opt,client)=>{
 			
 			 if(resp.done && resp.totalSize>0){
 				 switch(msg){
+					 case "genericactive":client.emit('objjobs','Active version Exists');client.emit('objjobs','Checkign Object is Done');break;
+					 case "genericexists":client.emit('objjobs','Object Exits');break;
              case "CheckOmniscriptsExists":client.emit('objjobs',"Omniscript Exits");OmniScriptcheckactiveversion(opt,client);break;
 				case "DR Exists": client.emit('objjobs','Data Raptor Exits');drtype(resp.records,opt,client);break;
 				case "ExtractDRperformop":client.emit('objjobs','Starting operations for Extract DR');ExtractDRperformop(resp.records,client);break;
@@ -71,6 +87,8 @@ var RestCallMapper=(query,msg,opt,client)=>{
 			 }
 			 else if (resp.done && resp.totalSize==0){
 				 switch(msg){
+					 case "genericactive":client.emit('objjobserr','Active version Doesnt Exists');client.emit('objjobs','Active version Doesnt Exists');client.emit('objjobs','Checking Object is Done');break;
+					 case "genericexists":client.emit('objjobserr',"Object Doesn't Exits,Give Correct Name and try again");client.emit('objjobs',"Object Doesn't Exits,Give Correct Name and try again");client.emit('objjobserr',"Checkign of Object is Done");break;
            case "CheckOmniscriptsExists":client.emit('objjobserr',"Omniscript Doesn't Exits, Give correct name");client.emit('objjobs',"There is no active version of this omniscript");client.emit('objjobs','Checking Omniscript is Done');break;
 				case "DR Exists": client.emit('objjobs',"DR query may be correct but there were no records for the query");client.emit('objjobserr',"DR query may be correct but there were no records for the query");client.emit('objjobs','Checking DR is Done');break;
 				case "ExtractDRperformop":client.emit('objjobs','DR query may be correct but to perform any operation no records for the query');break;
@@ -257,6 +275,7 @@ var getObjectDetails=(bundle,name,client)=>{//Gettign Object Details
 	switch (bundle){
 	case "DataRaptor":DRExists(name,client);break;
 	case "OmniScript":OmniscriptsExists(name,client);break;
+	default:objectexists(bundle,name,client);
 	}
 }
 io.on('connection', (client)=> {  
