@@ -114,12 +114,12 @@ var OmniScriptperformop=(resp,client)=>{
 									sample[propset.responseJSONNode]=false;
 								}
 								if(propset.preTransformBundle|| propset.postTransformBundle){
-									getObjectDetails("DataRaptor",propset.preTransformBundle!==""?propset.preTransformBundle:propset.postTransformBundle);
+									getObjectDetails("DataRaptor",propset.preTransformBundle!==""?propset.preTransformBundle:propset.postTransformBundle,client);
 								}
 								break;
 			case "DataRaptor Extract Action":
 										if(propset.bundle){
-											getObjectDetails("DataRaptor",propset.bundle);
+											getObjectDetails("DataRaptor",propset.bundle,client);
 										}
 										break;
 		}
