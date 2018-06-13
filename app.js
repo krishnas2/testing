@@ -106,6 +106,7 @@ var OmniScriptperformop=(resp,client)=>{
 		sample[resp.records[i].Name]=true;
 		propset=JSON.parse(resp.records[i]["vlocity_cmt__PropertySet__c"]);
 		client.emit('objjobs','Checking Node'+resp.records[i].Name);
+		client.emit('objjobs','Type'+resp.records[i]["vlocity_cmt__Type__c"]);
 		switch(resp.records[i]["vlocity_cmt__Type__c"]){
 			case "Remote Action":
 								
