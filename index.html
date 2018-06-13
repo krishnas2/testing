@@ -283,6 +283,8 @@ $scope.objectsuccess=false;
 $scope.showobjectconlogerr=false;
 $scope.upldtype='Upload';
 $scope.showprocess=false;
+  $scope.details={};
+$scope.obj={};
 $scope.names=['DataRaptor','OmniScript'];
   $scope.join = function() {
     socket.emit('joined', $scope.chat_input);

@@ -59,8 +59,9 @@ var RestCallMapper=(query,msg,opt,client)=>{
 			console.log('respo',resp.done,resp.totalSize);
 			
 			
-			 if(resp.done && resp["totalSize"]>0){
+			 if(resp.done && resp.totalSize>0){
 				 switch(msg){
+             case "CheckOmniscriptsExists":client.emit('objjobs',"Omniscript Exits");OmniScriptcheckactiveversion(opt,client);break;
 				case "DR Exists": client.emit('objjobs','Data Raptor Exits');drtype(resp.records,opt,client);break;
 				case "ExtractDRperformop":client.emit('objjobs','Starting operations for Extract DR');ExtractDRperformop(resp.records,client);break;
 				case "DRqueries":client.emit('objjobs','DR query is success');break;
@@ -68,12 +69,13 @@ var RestCallMapper=(query,msg,opt,client)=>{
 				case "OmniScriptperformop":client.emit('objjobs','Starting operations for Omniscript');OmniScriptperformop(resp,client);break;
 			}
 			 }
-			 else if (resp.done && resp["totalSize"]==0){
+			 else if (resp.done && resp.totalSize==0){
 				 switch(msg){
+           case "CheckOmniscriptsExists":client.emit('objjobserr',"There is no active version of this omniscript");client.emit('objjobs',"There is no active version of this omniscript");client.emit('objjobs','Checking Omniscript is Done');break;
 				case "DR Exists": client.emit('objjobs',"DR query may be correct but there were no records for the query");client.emit('objjobserr',"DR query may be correct but there were no records for the query");client.emit('objjobs','Checking DR is Done');break;
 				case "ExtractDRperformop":client.emit('objjobs','DR query may be correct but to perform any operation no records for the query');break;
 				case "OmniscriptsExists":client.emit('objjobs',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobserr',"Omniscript query may be correct but there were no records for the query"+JSON.stringify(resp,null,2));client.emit('objjobs','Checking Omniscript is Done');break;
-				case "DRqueries":client.emit('objjobs','DR query may be correct but there were no records for the query'+JSON.stringify(resp,null,2));break;
+				case "DRqueries":client.emit('objjobs','DR query may be correct but there were no records for the query,this could be due to field level security as well'+JSON.stringify(resp,null,2));break;
 				case "OmniScriptperformop":client.emit('objjobs','Omniscript query may be correct but there were no records for the query to perform any opration');break;
 			}
 			 }
@@ -82,7 +84,7 @@ var RestCallMapper=(query,msg,opt,client)=>{
 				case "DR Exists": client.emit('objjobs',"Data Raptor Doesn't Exist");client.emit('objjobserr',"Data Raptor Doesn't Exist");client.emit('objjobs','Checking DR is Done');break;
 				case "ExtractDRperformop":client.emit('objjobs','Starting operations for Extract DR');client.emit('objjobserr','Starting operations for Extract DR');break;
 				case "OmniscriptsExists":client.emit('objjobs',"Omniscript Doesn't Exits"+JSON.stringify(resp,null,2));client.emit('objjobserr',"Omniscript Doesn't Exits");client.emit('objjobs','Checking Omniscript is Done');break;
-				case "DRqueries":client.emit('objjobs','DR query failed'+JSON.stringify(resp,null,2));client.emit('objjobs','DR query is failed');break;
+				case "DRqueries":client.emit('objjobs','DR query failed'+JSON.stringify(resp,null,2)+',this could be due to field level security as wel');client.emit('objjobs','DR query is failed');break;
 				case "OmniScriptperformop":client.emit('objjobs','Starting operations for Omniscript');client.emit('objjobserr','Starting operations for Omniscript');break;
 			}
 			 }
@@ -135,10 +137,16 @@ var OmniScriptperformop=(resp,client)=>{
 	}
 	client.emit('objjobs','Checking Omniscript is Done');
 }
-var OmniscriptsExists=(name,client)=>{
-	q1="select+Id,vlocity_cmt__PropertySet__c+from+vlocity_cmt__OmniScript__c+Where+Name='"+name.replace(/\s/g,'+')+"'+and+vlocity_cmt__IsActive__c=true";
-	client.emit('objjobs','Checking if Omniscript is present');
+var OmniScriptcheckactiveversion=(name,client)=>{
+  q1="select+Id,vlocity_cmt__PropertySet__c+from+vlocity_cmt__OmniScript__c+Where+Name='"+name.replace(/\s/g,'+')+"'+and+vlocity_cmt__IsActive__c=true";
+	client.emit('objjobs','Checkign for active version');
 	RestCallMapper(q1,'OmniscriptsExists',name,client);
+}
+var OmniscriptsExists=(name,client)=>{
+  tq="select+Id,vlocity_cmt__PropertySet__c+from+vlocity_cmt__OmniScript__c+Where+Name='"+name.replace(/\s/g,'+')+"'";
+  client.emit('objjobs','Checking if Omniscript is present');
+  RestCallMapper(tq,'CheckOmniscriptsExists',name,client);
+	
 }
 var getOmniScriptDetails=(resp,client)=>{
 	try{
@@ -168,6 +176,9 @@ var drtype=(lis,name,client)=>{
 			client.emit('objjobs',"Type of DR is Extract");
 			client.emit('objjobs',"Getting Required DR vlaues by "+q2);
 			RestCallMapper(q2,'ExtractDRperformop',null,client);break;
+    default:
+      client.emit('objjobs',"Type of DR is"+lis[0]['vlocity_cmt__Type__c'] );
+      client.emit('objjobs',"Checking of DR is Done");
 			
 	}
 	}
@@ -233,7 +244,7 @@ client.emit('objjobs','Checking DR is Done');
 	}
 }
 var DRExists=(name,client)=>{
-	q1="select+Id,vlocity_cmt__Type__c+from+vlocity_cmt__DRBundle__c+where+Name+=+'"+name+"'";//Check DR is created
+	q1="select+Id,vlocity_cmt__Type__c+from+vlocity_cmt__DRBundle__c+where+Name+=+'"+name.replace(/\s/g,'+')+"'";//Check DR is created
 	client.emit('objjobs',"Checking DR Exists ");
 	RestCallMapper(q1,'DR Exists',name,client);
 }
