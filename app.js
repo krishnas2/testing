@@ -231,7 +231,7 @@ var ExtractDRperformop=(lis,client)=>{
 				if(lis[i]['vlocity_cmt__FilterOperator__c'] ===null){
 					//console.log(lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"],lis[i]);
 					var temp=lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].lastIndexOf(":");
-					a=holder[lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].substring(0,temp);
+					a=holder[lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].substring(0,temp)];
 					b=lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].substring(temp+1,);
 				}
 				if(b && !b.match(/\[/i)){
