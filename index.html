@@ -12,6 +12,7 @@
 #process {padding-top:50px;height:700px;max-height:900px;color: #fff;white-space: nowrap; background-color: #000;}
 #Handshake {padding-top:50px;height:900px;max-height:900px;color: #fff;white-space: nowrap; background-color: #009688;}
 #Object {padding-top:50px;height:900px;max-height:900px;color: #fff;white-space: nowrap; background-color: #6762a6;}
+#JIRA {padding-top:50px;height:900px;max-height:900px;color: #fff;white-space: nowrap; background-color: #000;}
 .btn-bs-file input[type="file"]{
     position: absolute;
     top: -9999999;
@@ -55,7 +56,7 @@
   </div>
 </nav>
 <div id="process">
-        <h1 class="container">Code Quality Checker TOOL</h1>
+        <h1 class="container">Vlocity Code Quality TOOL</h1>
 		<div class="container">
 		FLow of execution is done in three in 3 steps.
 		<br/>
@@ -77,7 +78,7 @@
         </div>
 		<br/>
     </div>
-		</div>
+</div>
 
 <div id="Handshake" class="container-fluid">
 <h1 class="container"> Step 1 : Handshake </h1>
@@ -252,6 +253,71 @@
 </div>
 </div>
 
+<div id="JIRA" class="container-fluid">
+<h1 class="container"> Step 3 : JIRA  </h1>
+<div ng-show="objectsuccess">
+<form class="form-horizontal" class="form-inline" role="form" name="jiraform">
+
+<div class="form-group">
+            <label for="username" class="col-sm-3 control-label">Org Username</label>
+            <div class="col-sm-4">
+                <input type="text" id="firstName" class="form-control" ng-model="jra.jirausname" name="jirausername"required="true"/>
+				<!--<div ng-show="handform.email.$error.email" class="error">Invalid Username!</div>-->
+                <div ng-show="jiraform.jirausername.$error.required &amp;&amp; jiraform.jirausername.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+
+        </div>
+        <div class="form-group">
+            <label for="Password" class="col-sm-3 control-label">Password</label>
+            <div class="col-sm-4">
+                <input type="password" id="Password" class="form-control" ng-model="jra.jirapsswrd" name="jirapassword"required="true" />
+				<div ng-show="jiraform.jirapassword.$error.required &amp;&amp; jiraform.jirapassword.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="form-group">
+            <label for="clientid" class="col-sm-3 control-label">Issue ID</label>
+            <div class="col-sm-4">
+                <input type="text" id="clientid" class="form-control" ng-model="jra.issueid" name="jiraissueid"required="true"/>
+				<div ng-show="jiraform.jiraissueid.$error.required &amp;&amp; jiraform.jiraissueid.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="form-group">
+            <label for="clientid" class="col-sm-3 control-label">Transition ID</label>
+            <div class="col-sm-4">
+                <input type="text" id="clientid" class="form-control" ng-model="jra.id" name="jiraid"required="true"/>
+				<div ng-show="jiraform.jiraid.$error.required &amp;&amp; jiraform.jiraid.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="form-group">
+            <label for="secret" class="col-sm-3 control-label">Domain</label>
+            <div class="col-sm-4">
+                <input type="text" id="secret" class="form-control" ng-model="jra.domain" name="jiradomain" required="true" />
+				<div ng-show="jiraform.jiradomain.$error.required &amp;&amp; jiraform.jiradomain.$touched" class="error">Required!</div>
+            </div>
+            <div class="col-sm-3"></div>
+        </div>
+		<div class="col-xs-11">
+        <div class="text-right">
+            <button type="button" class="btn btn-danger" ng-click="capturedjira()" >Execute</button>
+        </div>
+    </div>
+		<br/><br/>
+	<div class="col-md-12">
+              <div ng-show="showjiraError" class="alert alert-danger">JIRA Status Updation Failed {{jiraerror}}</div>
+              <div ng-show="showjiraSuccess" class="alert alert-success">JIRA Status Updated</div>
+            </div>
+</form>
+
+</div>
+<div ng-show="!objectsuccess">
+<h2 class="container"> Please Complete Step 2 First</h2>
+</div>
+</div>
+
   <script src="/socket.io/socket.io.js"></script>
    
 		<script>  
@@ -285,6 +351,10 @@ $scope.upldtype='Upload';
 $scope.showprocess=false;
   $scope.details={};
 $scope.obj={};
+$scope.jiraerror='';
+$scope.jirasuccess='';
+$scope.showjiraError=false;
+$scope.showjiraSuccess=false;
 $scope.names=['DataRaptor','OmniScript','ObjectLayout','VlocityUITemplate','VlocityCard','VlocityAction','VlocityUILayout'];
   $scope.join = function() {
     socket.emit('joined', $scope.chat_input);
@@ -343,7 +413,19 @@ socket.on('connect', function(data) {
   $scope.objjobsconerr+='\n'+data;
   $scope.$apply();
   });
+   socket.on('jiraserr', function(data) {
+  $scope.jiraerror=data;
+  $scope.showjiraError=true;
+$scope.showjiraSuccess=false;
+  $scope.$apply();
+  });
+  socket.on('jirasuccess', function(data) {
+  $scope.showjiraError=false;
+$scope.showjiraSuccess=true;
+  $scope.$apply();
+  });
   
+
   $scope.fileContent = '';
         $scope.fileSize = 0;
         $scope.fileName = '';
@@ -395,6 +477,10 @@ socket.on('connect', function(data) {
 	$scope.objectsuccess=false;
 		console.log('errors are present');
 	}
+  }
+  $scope.capturedjira=function(){
+	$scope.jra.url="https://"+$scope.jra.domain+".atlassian.net/rest/api/2/issue/"+$scope.jra.issueid+"/transitions";
+	socket.emit('jiracheckupdation', $scope.jra);
   }
   });
   
