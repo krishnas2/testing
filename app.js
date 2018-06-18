@@ -1,12 +1,13 @@
 // app.js
-var express = require('express');  
-var app = express();  
-var server = require('http').createServer(app);  
-var io = require('socket.io')(server);
-var bodyParser = require('body-parser');
-var querystring=require('querystring');
-var https=require('https');
-var username='',
+var express = require('express'),
+app = express(),  
+server = require('http').createServer(app),  
+io = require('socket.io')(server),
+bodyParser = require('body-parser'),
+querystring=require('querystring'),
+https=require('https'),
+request = require('request'),
+username='',
 access_token='',
 instance_url='',
 squery='/services/data/v41.0/query/?q=';
@@ -358,6 +359,38 @@ f='d';
 	client.on('sfdcobjdetails', (data)=> {
         console.log(data);
 		getObjectDetails(data.selectedName,data.objname,client);
+    });
+	
+	client.on('jiracheckupdation', (data)=> {
+        console.log(data);
+		var url = data.jiraurl ;
+		//"https://kkjtest2.atlassian.net/rest/api/2/issue/TES-1/transitions"
+		var message = {
+			"update": {
+				"comment": [{"add": {"body": "Test commenting."}}]
+			},
+			"transition": {"id": data.id}
+		},
+		options={
+			url: url,
+			method: "POST",
+			json: true,
+			body: message,
+			auth: {user: data.jirausname, pass: data.jirapsswrd}
+		};
+
+		request(options, function (error, response, body) {
+			if (!error && response.statusCode === 204) {
+				console.log("OK");
+				client.emit('jirasuccess', '');
+			} else if (error) {
+				console.log(error);
+				client.emit('jiraserr', 'Due to Error'+error);
+			} else {
+				console.log(response.statusCode);
+				client.emit('jiraserr', 'With a Status Code'+response.statusCode);
+			}
+		});
     });
 });
 
