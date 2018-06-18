@@ -230,9 +230,9 @@ var ExtractDRperformop=(lis,client)=>{
 	for (var i=0;i<lis.length;i++){
 				if(lis[i]['vlocity_cmt__FilterOperator__c'] ===null){
 					//console.log(lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"],lis[i]);
-					temp=lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].split(":");
-					a=holder[temp[0]];
-					b=temp[1];
+					var temp=lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].lastIndexOf(":");
+					a=holder[lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].substring(0,temp);
+					b=lis[i]["vlocity_cmt__InterfaceFieldAPIName__c"].substring(temp+1,);
 				}
 				if(b && !b.match(/\[/i)){
 				if(sample.hasOwnProperty(a)){
