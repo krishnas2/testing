@@ -1,0 +1,8 @@
+public with sharing class GetRelatedClass {
+	@AuraEnabled
+    public static List<Object> gettasks(String s){
+        System.debug(s);
+        List<Object> t=Database.query('select Id,Name,LastModifiedDate from '+s+' order by LastModifiedDate DESC');
+        return t;
+    }
+}
