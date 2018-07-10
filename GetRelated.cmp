@@ -1,0 +1,48 @@
+<aura:component controller="GetRelatedClass" >
+	
+    <aura:attribute name="rels" type="String" default="Opportunity"/>
+    <aura:attribute name="contactRows" type="Object[]"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <p>jhjeekh</p>
+    
+    <div class="row">
+        <h2 class="header">Live Input Text</h2>
+        <lightning:input name="input8" value="{! v.rels }" placeholder="rels..." label="Text field with attribute binding" />
+        <p>
+            Value Entered: {! v.rels }
+        </p>
+        <lightning:button variant="brand" label="Fetch" title="Fetch action" onclick="{! c.handleClick }" />
+
+    </div>
+    <h2>Most Recent Records are</h2>
+    
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+             <thead>
+            <tr class="slds-text-title_caps">
+                <th scope="col">
+                    <div class="slds-truncate" title="Name">Name</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="Id">Id</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="LastModifiedDate">LastModifiedDate</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="index">index</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <aura:iteration items="{!v.contactRows}" var="item" indexVar="index">
+            <tr>
+                <td data-label="Name"><div class="slds-truncate" title="">{!item.Name}</div></td>
+                <td data-label="id"><div class="slds-truncate" title="">{!item.Id}</div></td>
+                <td data-label="date"><div class="slds-truncate" title="">{!item.LastModifiedDate}</div></td>
+                <td data-label="index"><div class="slds-truncate" title="">{!index+1}</div></td></tr>
+        </aura:iteration>
+            </tbody>
+        </table>
+		
+
+</aura:component>
