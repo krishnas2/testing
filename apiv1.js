@@ -67,12 +67,18 @@ var isEmpty = (obj)=> {
     }
     return true;
 }
+var typesubtypequeryapi=(name)=>{
+	var temp=name.lastIndexOf('_');
+	console.log(name.substring(0,temp),name.substring(temp+1,));
+	return "select+Id,vlocity_cmt__PropertySet__c+from+vlocity_cmt__OmniScript__c+where+vlocity_cmt__Type__c='"+name.substring(0,temp)+"'+and+vlocity_cmt__SubType__c='"+name.substring(temp+1,)+"'";
+};
 var drapi=(name)=>{
 	var temp={"type":"","success":[],"error":[],"warning":[]};
 async.waterfall([
 (drapic)=>{
 restcallmapperapi("select+Id,vlocity_cmt__Type__c,vlocity_cmt__OutputType__c,vlocity_cmt__UseAssignmentRules__c,vlocity_cmt__CheckFieldLevelSecurity__c,vlocity_cmt__SampleInputJSON__c+from+vlocity_cmt__DRBundle__c+where+Name+=+'" + name.replace(/\s/g, '+') + "'", drapic);//DR Exits
-},(dt,drapic)=>{
+},
+(dt,drapic)=>{
 	if (dt.error){
 		drapic("Couldn't Find any DataRaptor with Given Name: "+name);
 	}
@@ -176,7 +182,6 @@ restcallmapperapi("select+Id,vlocity_cmt__Type__c,vlocity_cmt__OutputType__c,vlo
 												catch(e){
 													temp["error"].push("Issue with current JSON Node of "+name+" JSON is "+JSON.stringify(lis[i],null,2));
 												}
-												
 											}
 											if(b && !b.match(/\[/i)){
 											if(sample.hasOwnProperty(a)){
@@ -197,17 +202,216 @@ restcallmapperapi("select+Id,vlocity_cmt__Type__c,vlocity_cmt__OutputType__c,vlo
 									//RestCallMapper(tempquery,'DRqueries',null,client);
 									}
 								}
-								
+								//Execute REST Call for each Start
+								async.map(q, (val,childcallback)=>{//WIP
+									restcallmapperapi(val,childcallback);
+								}, (err,result)=>{
+									// i want result of each call
+								});
+								// Execute REST Call for Each End
 							// Extract DR Perform Operations End
 					}
 					break;
 		case "Load":break;
 	}
 }
-
+}
 ],(err,res)=>{
-	temp["error"].push(err);
+	if(err){
+		temp["error"].push(err);}
 	return [name,temp];
+});
+};
+var omniscriptapi=(bundle,name)=>{
+	var temp={"type":"","success":[],"error":[],"warning":[]};
+	async.waterfall([
+	(omnicallback)=>{
+		restcallmapperapi(bundle==='IntegrationProcedure'?typesubtypequery(name):"select+Id,vlocity_cmt__PropertySet__c+from+vlocity_cmt__OmniScript__c+Where+Name='"+name.replace(/\s/g,'+')+"'",omnicallback);//Omniscript Exits
+	},
+	(dt,omnicallback)=>{
+		if(dt.error){
+			omnicallback("Couldn't Find any "+bundle+" with Given Name: "+name);
+		}
+		else{
+			// Omniscript Naming Convention Start
+			if(namingconventioncheckapi(name)){//Checking Naming Convention
+			temp["success"].push("Naming Convention for "+name+" is followed");
+			}
+			else{
+				temp["error"].push("Naming Convention for "+name+" is not followed");
+			}
+			//Omniscript Naming Convention End
+			//Omniscript Active Version query
+			restcallmapperapi("select+Id,vlocity_cmt__PropertySet__c+from+vlocity_cmt__OmniScript__c+Where+Name='"+name.replace(/\s/g,'+')+"'+and+vlocity_cmt__IsActive__c=true",omnicallback);
+		}
+	},
+	(dt,omnicallback)=>{
+		//Active Version Check Start
+		if(dt.error){
+			omnicallback("Couldn't Find any Active version"+bundle+" with  Name: "+name);
+		}
+		else{
+			temp["success"].push("Active Version of"+bundle+ " with name "+name+" is Present");
+			//Active Version Check End
+			//Getting values from vlocity_cmt__Element__c using Omniscript Id
+			restcallmapperapi("select+Name,vlocity_cmt__Type__c,vlocity_cmt__PropertySet__c,vlocity_cmt__Level__c,vlocity_cmt__Active__c,Id+from+vlocity_cmt__Element__c+where+vlocity_cmt__OmniScriptId__c='"+dt.data.records[0].Id+"'+ORDER+BY+vlocity_cmt__Level__c,vlocity_cmt__Order__c",omnicallback);
+		}
+	},
+	(dt,omnicallback)=>{
+		//Omniscript Element Check Start
+		if(dt.error){
+			omnicallback("Couldn't Any Elements for "+bundle+" with  Name: "+name+ " Fill the omniscript with atleast one item");
+		}
+		else{
+							var sample={};
+							var i1=0,i2=0,resp=dt.data,valholder=[];
+							for (var i=0;i<resp.records.length;i++){
+								if(resp.records[i]["vlocity_cmt__Active__c"]){
+								sample[resp.records[i].Name]=true;
+								propset=JSON.parse(resp.records[i]["vlocity_cmt__PropertySet__c"]);
+								switch(resp.records[i]["vlocity_cmt__Type__c"]){
+									case "Response Action":i1+=1;break;
+									case "Step":i2+=1;break;
+									case "OmniScript":
+													valholder=omniscriptapi('OmniScript',resp.records[i].Name);
+													temp[valholder[0]]=valholder[1];
+													break;
+									case "Integration Procedure Action":
+													valholder=omniscriptapi('IntegrationProcedure',propset.integrationProcedureKey);
+													temp[valholder[0]]=valholder[1];
+												break;
+									case "Remote Action":
+														
+														if(propset.responseJSONNode && sample[propset.responseJSONNode]===undefined && propset.responseJSONNode!="vlcCart"){//Check for persistent component should be made dynamic
+															//Saving response JSON Node Name for Refrencing in Selectable Items
+															sample[propset.responseJSONNode]=false;
+														}
+														if(propset.preTransformBundle|| propset.postTransformBundle){
+															valholder=drapi(propset.preTransformBundle!==""?propset.preTransformBundle:propset.postTransformBundle);
+															temp[valholder[0]]=valholder[1];
+														}
+														break;
+									case "DataRaptor Extract Action":
+									case "DataRaptor Post Action":
+									case "DataRaptor Transform Action":
+																if(propset.bundle){
+																	valholder=drapi(propset.bundle);
+																	temp[valholder[0]]=valholder[1];
+																}
+																break;
+								}
+							}
+							}
+							if (i2===0){
+								//Chekcing for Response Action
+								if(i1===0){
+									temp["error"].push("There is no Response Action for "+bundle+ " with name "+name);
+								}
+								else{
+									temp["error"].push(" Response Action for "+bundle+ " with name "+name+" is present");
+								}
+							}
+							for (i in sample){
+								//console.log(sample[i],i);
+								if (sample.hasOwnProperty(i) && sample[i]===false){
+									temp["error"].push("The JSON Node "+ i +" is not existing but used in Remote Action for "+bundle+ " with name "+name);
+									console.log(i,' is not existing but used');
+								}
+								/* else{
+									client.emit('objjobs','Checked Node'+i);
+								} */
+							}
+							omnicallback(null);
+		}
+	}
+	
+	],(err,res)=>{
+		if(err){
+		temp["error"].push(err);}
+		return [name,temp];
+	});
+	
+};
+var genericobjectops=(bundle,name)=>{
+	var temp={"type":"","success":[],"error":[],"warning":[]};
+	temp.type=bundle;
+	async.waterfall([
+	(genericcallback)=>{
+		restcallmapperapi("select+Id+from+vlocity_cmt__"+bundle+"__c+where+Name=+'"+name.replace(/\s/g,'+')+"'",genericcallback);//Object Exits
+	},
+	(dt,genericcallback)=>{
+		if(dt.error){
+			genericcallback("Couldn't Find any "+bundle+" with Given Name: "+name);
+		}
+		else{
+			//Call for Active Version check Start
+			switch(bundle){
+							case "VlocityAction":restcallmapperapi("select+Id+from+vlocity_cmt__"+bundle+"__c+where+Name=+'"+name.replace(/\s/g,'+')+"'+and+vlocity_cmt__IsActive__c=true",genericcallback);
+									break;
+							case "VlocityUITemplate":
+							case "VlocityCard":
+							case "VlocityUILayout":
+							restcallmapperapi("select+Id+from+vlocity_cmt__"+bundle+"__c+where+Name=+'"+name.replace(/\s/g,'+')+"'+and+vlocity_cmt__Active__c=true",genericcallback);
+									break;
+			}
+			//Call for Active Version check End
+		}
+	},
+	(dt,genericcallback)=>{
+		if(dt.error){
+			genericcallback("Couldn't Find any Active Version for "+bundle+" with Name: "+name);
+		}
+		else{
+			temp["success"].push("Active Version for "+bundle+" with Name: "+name);
+			// Generic Naming Convention Start
+			if(namingconventioncheckapi(name)){//Checking Naming Convention
+			temp["success"].push("Naming Convention for "+name+" is followed");
+			}
+			else{
+				temp["error"].push("Naming Convention for "+name+" is not followed");
+			}
+			//Generic Naming Convention End
+			switch(bundle){
+				case "VlocityUITemplate":restcallmapperapi("select+vlocity_cmt__HTML__c,vlocity_cmt__CustomJavascript__c,vlocity_cmt__Sass__c,vlocity_cmt__CSS__c+from+vlocity_cmt__VlocityUITemplate__c+where+name+='"+name.replace(/\s/g,'+')+"'",genericcallback);break;
+				case "VlocityAction":
+				restcallmapperapi("select+vlocity_cmt__OpenURLMode__c,vlocity_cmt__LinkType__c,vlocity_cmt__URL__c,vlocity_cmt__UrlParameters__c,vlocity_cmt__DisplayOn__c+from+vlocity_cmt__"+"VlocityAction"+"__c+where+Name=+'"+name.replace(/\s/g,'+')+"'and+vlocity_cmt__IsActive__c=true",genericcallback);
+									break;
+				default:genericcallback(null);
+			}
+		}
+		
+	},
+	(dt,genericcallback)=>{
+		switch(bundle){
+			case "VlocityAction":
+										try{
+											rec=dt.data.records[0];
+											for (i in rec){
+												if(rec.hasOwnProperty(i)){
+													if(rec[i]!==null && rec[i]!='')
+															temp["success"].push(i+ " is fine for Object "+object+ " of Name "+ name);
+													else
+														temp["error"].push(i+ " is fine for Object "+object+ " of Name "+ name);
+												}
+											}
+											}
+											catch(e){
+												temp["error"].push(" Error for Object "+object+ " of Name "+ name+ "  "+e);
+											}
+											finally{
+											genericcallback(null);
+											}
+									break;
+			case "VlocityUITemplate":genericcallback(null);break;
+			default:genericcallback(null);
+		}
+	}
+	
+	],(err,res)=>{
+		if(err){
+		temp["error"].push(err);}
+		return [name,temp];
+	});
 };
 var apihandshake= (data,asyncc)=>{
 	         console.log('sfdc',data);
@@ -215,7 +419,7 @@ var apihandshake= (data,asyncc)=>{
 	var headers={
 		'Content-Type':'application/json'
 	},
-	data={
+	dat={
 		'grant_type':'password',
 		'client_id':data.clientid,
 		'client_secret':data.clientsecret,
@@ -223,8 +427,8 @@ var apihandshake= (data,asyncc)=>{
 		'password':data.password
 	};
 	var host=data.env=="Production"?'login.salesforce.com':'test.salesforce.com',
-	endpoint = '/services/oauth2/token?'+querystring.stringify(data);
-	console.log(data['client_id'],data['username'],data['password']);
+	endpoint = '/services/oauth2/token?'+querystring.stringify(dat);
+	console.log(dat['client_id'],dat['username'],dat['password']);
 	var options={
 		host:host,
 		port:null,
@@ -273,15 +477,24 @@ var asyncopps=(webresponse,i)=>{
 	switch (i.obj.type){
 	case "DataRaptor":
 						var temp2=drapi(i.obj.name);
-						asyncc(null,{temp2[0]:temp2[1]});
+						var temp1={};
+						temp1[temp2[0]]=temp2[1];
+						asyncc(null,temp1);
 						break;
-	/*case "OmniScript":
+	case "OmniScript":
 	case "Integration_Prodecure":
-	case "IntegrationProcedure":
-	OmniscriptsExists(name,bundle,client);break;
-	default:objectexists(bundle,name,client);*/
+	case "IntegrationProcedure":var temp2=omniscriptapi(i.obj.type,i.obj.name);
+						var temp1={};
+						temp1[temp2[0]]=temp2[1];
+						asyncc(null,temp1);
+							break;
+	default:var temp2=genericobjectops(i.obj.type,i.obj.name);
+						var temp1={};
+						temp1[temp2[0]]=temp2[1];
+						asyncc(null,temp1);
 	}
-},(temp1,asyncc)=>{
+},
+(temp1,asyncc)=>{
 	temp1["error"]=[];
 	temp1["warning"]=[];
 	var recurobjs=(objs)=>{
@@ -300,6 +513,7 @@ var asyncopps=(webresponse,i)=>{
 	}
 	};
 	recurobjs(temp1);
+	asyncc(null,temp1);
 },
 
 ],(err,res)=>{
