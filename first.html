@@ -1,0 +1,23 @@
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.9/angular.min.js"></script>
+   <script type="text/javascript">
+       var app = angular.module('MyApp', [])
+       app.controller('MyController', function ($scope, $window) {
+           $scope.OpenPopupWindow = function () {
+               $window.open("https://login.salesforce.com/services/oauth2/authorize?response_type=token&client_id=3MVG9d8..z.hDcPKdqHysj9lge809YseEnJ14C_mrrYwcqoDvthhTsUbHDufAAsprqHyOvSlBDqG4r87Y9ZqN&redirect_uri=http://localhost:4200/closehtml&state=mystate", "popup", "width=300,height=200,left=10,top=150");
+           }
+       });
+    </script>
+    <div ng-app="MyApp" ng-controller="MyController">
+        <input type="button" value="Open Popup Window" ng-click="OpenPopupWindow()" />
+    </div>
+</body>
+</html>
+
+<!--
+https://login.salesforce.com/services/oauth2/authorize?response_type=token&client_id=3MVG9d8..z.hDcPKdqHysj9lge809YseEnJ14C_mrrYwcqoDvthhTsUbHDufAAsprqHyOvSlBDqG4r87Y9ZqN&redirect_uri=https%3A%2F%2Fvlocity-codequality-checker.herokuapp.com%2Findex%23Handshake&state=mystate 
+-->
